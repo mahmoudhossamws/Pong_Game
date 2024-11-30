@@ -1,4 +1,22 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Reference Book: 
+// Chu, Pong P.
+// Wiley, 2008
+// "FPGA Prototyping by Verilog Examples: Xilinx Spartan-3 Version" 
+// 
+// Adapted for the Basys 3 by David J. Marion
+// Comments by David J. Marion
+//
+// FOR USE WITH AN FPGA THAT HAS A 100MHz CLOCK SIGNAL ONLY.
+// VGA Mode
+// 640x480 pixels VGA screen with 25MHz pixel rate based on 60 Hz refresh rate
+// 800 pixels/line * 525 lines/screen * 60 screens/second = ~25.2M pixels/second
+//
+// A 25MHz signal will suffice. The Basys 3 has a 100MHz signal available, so a
+// 25MHz tick is created for syncing the pixel counts, pixel tick, horiz sync, 
+// vert sync, and video on signals.
+//////////////////////////////////////////////////////////////////////////////////
 
 module vga_controller(
     input clk_100MHz,   // from Basys 3
@@ -13,8 +31,7 @@ module vga_controller(
     
     // Based on VGA standards found at vesa.org for 640x480 resolution
     // Total horizontal width of screen = 800 pixels, partitioned  into sections
-    
-    parameter HD = 740;             // horizontal display area width in pixels
+    parameter HD = 640;             // horizontal display area width in pixels
     parameter HF = 48;              // horizontal front porch width in pixels
     parameter HB = 16;              // horizontal back porch width in pixels
     parameter HR = 96;              // horizontal retrace width in pixels
@@ -27,7 +44,7 @@ module vga_controller(
     parameter VMAX = VD+VF+VB+VR-1; // max value of vertical counter = 524   
     
     // *** Generate 25MHz from 100MHz *********************************************************
-	reg  [1:0] r_25MHz;
+	reg [1:0] r_25MHz;
 	wire w_25MHz;
 	
 	always @(posedge clk_100MHz or posedge reset)
@@ -90,7 +107,7 @@ module vga_controller(
     assign v_sync_next = (v_count_reg >= (VD+VB) && v_count_reg <= (VD+VB+VR-1));
     
     // Video ON/OFF - only ON while pixel counts are within the display area
-    assign video_on = (h_count_reg > 100 && h_count_reg < HD) && (v_count_reg < VD); // 0-639 and 0-479 respectively
+    assign video_on = (h_count_reg < HD) && (v_count_reg < VD); // 0-639 and 0-479 respectively
             
     // Outputs
     assign hsync  = h_sync_reg;
