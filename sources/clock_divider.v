@@ -1,23 +1,8 @@
+/*
+    Credit goes to all of us
+*/
+
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/26/2024 01:22:07 PM
-// Design Name: 
-// Module Name: clock_divider
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
 module clock_divider #(parameter n = 50000000)
 (input clk, reset, output reg clk_out);

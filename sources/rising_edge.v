@@ -1,25 +1,8 @@
+/*
+    Credit goes to all of us
+*/
+
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/26/2024 12:18:41 PM
-// Design Name: 
-// Module Name: rising_edge
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-
 
 module rising_edge(
         input clk, rst, w, output z

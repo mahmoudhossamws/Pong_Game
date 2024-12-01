@@ -1,3 +1,7 @@
+/*
+    Credit goes to all of us
+*/
+
 `timescale 1ns / 1ps
 
 module pixel_gen(
@@ -10,8 +14,11 @@ module pixel_gen(
     input video_on,
     input [9:0] x,
     input [9:0] y,
+    input start,
     output reg [11:0] rgb,
-    output reg [1:0] score1, score2
+    output graph_on,
+    output reg [3:0] score1, score2,
+    output isGameOver
     );
 
 
@@ -41,7 +48,7 @@ module pixel_gen(
     
     
     // PADDLE
-    parameter x_ball_initial = 376;
+    parameter x_ball_initial = 319;
     parameter y_ball_initial = 239;
     
     // paddle horizontal boundaries
@@ -87,8 +94,8 @@ module pixel_gen(
         if(reset) begin
             score1 <= 0;
             score2 <= 0;
-            y_pad_reg <= 0;
-            y_pad_reg1 <= 0;
+            y_pad_reg <= 204;
+            y_pad_reg1 <= 204;
             x_ball_reg <= x_ball_initial;
             y_ball_reg <= y_ball_initial;
             x_delta_reg <= 10'h002;
@@ -99,10 +106,12 @@ module pixel_gen(
             y_pad_reg1 <= y_pad_next1;
             x_ball_reg <= x_ball_next;
             y_ball_reg <= y_ball_next;
-            x_delta_reg <= x_delta_next;
-            y_delta_reg <= y_delta_next;
-            if(en1) score1 <= score1 + 1;
-            if(en2) score2 <= score2 + 1;
+            if(~isGameOver && start) x_delta_reg <= x_delta_next;
+            else x_delta_reg = 0;
+            if(~isGameOver && start) y_delta_reg <= y_delta_next;
+            else y_delta_reg = 0;
+            if(en1) score1 <= (score1 + 1) % 9;
+            if(en2) score2 <= (score2 + 1) % 9;
         end
     
     // ball rom
@@ -121,8 +130,13 @@ module pixel_gen(
     // OBJECT STATUS SIGNALS
 //    wire wall_on;
     wire pad_on, pad_on1, sq_ball_on, ball_on;
+    wire vLineOn;
+    assign vLineOn = (x >= 318 && x <= 320) && (y < 25 || (y - 25) % 68 >= 18);
+
 //    wire [11:0] wall_rgb;
     wire [11:0] pad_rgb, ball_rgb, bg_rgb;
+    wire [11:0] vLine_rgb;
+    assign vLine_rgb = 12'hAAA;
     
     // pixel within wall boundaries
 //    assign wall_on = ((X_WALL_L <= x) && (x <= X_WALL_R)) ? 1 : 0;
@@ -130,8 +144,8 @@ module pixel_gen(
     // assign object colors
 //    assign wall_rgb = 12'hAAA;      // gray wall
     assign pad_rgb = 12'hAAA;       // gray paddle
-    assign ball_rgb = 12'hF00;      
-    assign bg_rgb = 12'h0FF;       // close to black background
+    assign ball_rgb = 12'hF00; // F00      
+    assign bg_rgb = 12'h0FF;       // 0FF // close to black background
     
     // paddle 
     assign y_pad_t = y_pad_reg;                             // paddle top position
@@ -177,15 +191,15 @@ module pixel_gen(
     assign rom_col = x[2:0] - x_ball_l[2:0];    // 3-bit column index
     assign rom_bit = rom_data[rom_col];         // 1-bit signal rom data by column
     // pixel within round ball
-    assign ball_on = sq_ball_on & rom_bit;      // within square boundaries AND rom data bit == 1
+    assign ball_on = (sq_ball_on & rom_bit) && ~isGameOver && start;      // within square boundaries AND rom data bit == 1
     // new ball position
-    assign x_ball_next = (!refresh_tick) ?  x_ball_reg : (x_ball_l > X_MAX || x_ball_r < 1) ?  x_ball_initial : x_ball_reg + x_delta_reg;
-    assign y_ball_next = (!refresh_tick) ?  y_ball_reg : (x_ball_l > X_MAX || x_ball_r < 1) ?  y_ball_initial : y_ball_reg + y_delta_reg;
+    assign x_ball_next = (!refresh_tick) ?  x_ball_reg : (x_ball_l > X_MAX || x_ball_r <= 9) ?  x_ball_initial : x_ball_reg + x_delta_reg;
+    assign y_ball_next = (!refresh_tick) ?  y_ball_reg : (x_ball_l > X_MAX || x_ball_r <= 9) ?  y_ball_initial : y_ball_reg + y_delta_reg;
     
     // change ball direction after collision
     always @* begin
-        x_delta_next = x_delta_reg;
-        y_delta_next = y_delta_reg;
+        x_delta_next = x_delta_reg == 0 ? 10'h001 : x_delta_reg;
+        y_delta_next = y_delta_reg == 0 ? 10'h001 : y_delta_reg;
         if(y_ball_t < 1)                                            // collide with top
             y_delta_next = BALL_VELOCITY_POS;                       // move down
         else if(y_ball_b > Y_MAX)                                   // collide with bottom
@@ -197,22 +211,30 @@ module pixel_gen(
             x_delta_next = BALL_VELOCITY_NEG;                       // move left
         else if((X_PAD_R1 >= x_ball_l) && (x_ball_l >= X_PAD_L1) &&
             (y_pad_t1 <= y_ball_b) && (y_ball_t <= y_pad_b1))     // collide with paddle
-        x_delta_next = BALL_VELOCITY_POS;                  
+        x_delta_next = BALL_VELOCITY_POS;
+        else if(x_ball_l > X_MAX)
+              x_delta_next = BALL_VELOCITY_NEG;
+        else if(x_ball_r <= 9)
+            x_delta_next = BALL_VELOCITY_POS;  
     end                    
     
     
+//    assign w1 = (x_ball_l > 639 && x_ball_r > 630) ? 1 : 0;
+//    assign w2 = (x_ball_r < 30) ? 1 : 0;
+    
     // rgb multiplexing circuit
     always @*
-        if(~video_on)
-            rgb = 12'h000;      // no value, blank
-        else
-//            if(wall_on)
-//                rgb = wall_rgb;     // wall color
+       if(~video_on)
+          rgb = 12'h000;      // no value, blank
+       else
             if(pad_on || pad_on1)
                 rgb = pad_rgb;      // paddle color
             else if(ball_on)
                 rgb = ball_rgb;     // ball color
-            else
-                rgb = bg_rgb;       // background
+            else if(vLineOn)
+                rgb = vLine_rgb;         
+       
+       assign graph_on = pad_on || pad_on1 || ball_on || vLineOn;
+       assign isGameOver = (score1 == 4'b1000) || (score2 == 4'b1000);
        
 endmodule

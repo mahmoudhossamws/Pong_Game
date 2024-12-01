@@ -1,3 +1,7 @@
+/*
+    Credit goes to all of us
+*/
+
 `timescale 1ns / 1ps
 
 module debounce(

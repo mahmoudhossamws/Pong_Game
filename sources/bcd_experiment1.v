@@ -1,24 +1,8 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 11/26/2024 11:22:21 AM
-// Design Name: 
-// Module Name: bcd_experiment1
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+/*
+    Credit goes to all of us
+*/
 
+`timescale 1ns / 1ps
 
 module bcd_experiment1(
         input en, input [2:0] num, input [1:0] sel, output reg [6:0] seg, output reg [3:0] av
