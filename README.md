@@ -1,9 +1,21 @@
 # Pong Game
 🎮Pong game implemented in Verilog, running on an FPGA with VGA display.
 
+<div align="center">
+
+<img src="./assets/demo.gif" alt="demo">
+
+</div>
+
 
 ## Desing Approach
-The project consists of two main components: the VGA controller and the pixel generation circuit.
+The project consists of two main components: the VGA controller and the pixel generation circuit. You can also view the full design [here](https://drive.google.com/file/d/1XH2eaCGtwWvvsEmzvkRFTHJGWZ0WUjuV/view?usp=sharing).
+
+<div align="center">
+
+<img src="./assets/p0.png" alt="p0">
+
+</div>
 
 ### VGA controller
 
